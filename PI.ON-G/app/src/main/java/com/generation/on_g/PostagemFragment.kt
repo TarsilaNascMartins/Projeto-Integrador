@@ -1,26 +1,34 @@
 package com.generation.on_g
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.LinearLayout
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.generation.on_g.adapter.PostAdapter
-import com.generation.on_g.modelo.Postagem
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.generation.on_g.databinding.FragmentPostagemBinding
+import com.generation.on_g.mvvm.MainViewModel
 
 class PostagemFragment : Fragment() {
+
+    private val mainViewModel: MainViewModel by activityViewModels()
+    private lateinit var binding : FragmentPostagemBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        mainViewModel.listPostagem()
 
+        binding = FragmentPostagemBinding.inflate(
+                        layoutInflater, container,false
+        )
+
+         /*
         val view = inflater.inflate(R.layout.fragment_postagem, container, false)
         val listPostagem = mutableListOf(Postagem(
             "Doação de Roupas",
@@ -55,22 +63,31 @@ class PostagemFragment : Fragment() {
             "22-03-2022 / 07:00"
         ))
 
+          */
 
 
-        val floatingAdd = view.findViewById<FloatingActionButton>(R.id.floatingAdd)
 
-        floatingAdd.setOnClickListener{
+        //val floatingAdd = view.findViewById<FloatingActionButton>(R.id.floatingAdd)
+        val postAdapter = PostAdapter()
+        binding.floatingAdd.setOnClickListener{
             findNavController().navigate(R.id.action_postagemFragment_to_formularioPostFragment)
         }
-        val recyclerPost = view.findViewById<RecyclerView>(R.id.recyclerPost)
-        val postAdapter = PostAdapter()
+        mainViewModel.myPostagemResponse.observe(viewLifecycleOwner)
+        { response -> if (response.body() != null) {
+               postAdapter.attList(response.body()!!)
+            }
+            Log.d("requisição", response.body().toString())
+        }
 
-        recyclerPost.adapter = postAdapter
-        recyclerPost.setHasFixedSize(true)
-        postAdapter.attList(listPostagem)
-        recyclerPost.layoutManager = LinearLayoutManager(context)
+        val recyclerPost = binding.recyclerPost
 
 
-        return view
+        binding.recyclerPost.adapter = postAdapter
+        binding.recyclerPost.setHasFixedSize(true)
+        //postAdapter.attList(listPostagem)
+        binding.recyclerPost.layoutManager = LinearLayoutManager(context)
+
+
+        return binding.root
     }
 }
